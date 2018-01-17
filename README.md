@@ -4,6 +4,8 @@ Adapter to Oracle. Using `DBConnection` and `ODBC`.
 
 It connects to [Ecto](https://github.com/elixir-ecto/ecto) with [OracleEcto](https://github.com/MikeAlbertFleetSolutions/oracle_ecto).
 
+Based on [findmypast-oss/mssqlex](https://github.com/findmypast-oss/mssqlex)
+
 ## Installation
 
 Oracleex requires the [Erlang ODBC application](http://erlang.org/doc/man/odbc.html) to be installed.
