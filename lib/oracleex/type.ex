@@ -34,12 +34,10 @@ defmodule Oracleex.Type do
     {:odbc.odbc_data_type(), [:odbc.value()]}
   def encode(value, _) when is_boolean(value) do
     {:sql_bit, [value]}
-    end
+  end
 
   def encode({_year, _month, _day} = date, _) do
     encoded = Date.from_erl!(date)
-
-    encoded
     |> to_string
     |> :unicode.characters_to_binary(:unicode, :latin1)
     {{:sql_varchar, String.length(encoded)}, [encoded]}
@@ -48,8 +46,6 @@ defmodule Oracleex.Type do
   def encode({hour, minute, sec, usec}, _) do
     precision = if usec == 0, do: 0, else: 6
     encoded = Time.from_erl!({hour, minute, sec}, {usec, precision})
-
-    encoded
     |> to_string
     |> :unicode.characters_to_binary(:unicode, :latin1)
     {{:sql_varchar, String.length(encoded)}, [encoded]}
@@ -59,8 +55,6 @@ defmodule Oracleex.Type do
     precision = if usec == 0, do: 0, else: 2
     encoded = NaiveDateTime.from_erl!(
       {{year, month, day}, {hour, minute, sec}}, {usec, precision})
-
-    encoded
     |> to_string
     |> :unicode.characters_to_binary(:unicode, :latin1)
     {{:sql_varchar, String.length(encoded)}, [encoded]}

@@ -36,11 +36,17 @@ defmodule Oracleex do
   """
   @spec start_link(Keyword.t) :: {:ok, pid}
   def start_link(opts) do
-    DBConnection.start_link(Oracleex.Protocol, opts)
+    {:ok, pid} = DBConnection.start_link(Oracleex.Protocol, opts)
+
+    # set oracle date format to match odbc
+    Oracleex.query(pid, "ALTER SESSION SET NLS_DATE_FORMAT ='YYYY-MM-DD HH:MI:SS'", [])
+    Oracleex.query(pid, "ALTER SESSION SET NLS_TIMESTAMP_FORMAT ='YYYY-MM-DD HH:MI:SS'", [])
+
+    {:ok, pid}
   end
 
   @doc """
-  Executes a query against an MS SQL Server with ODBC.
+  Executes a query against an Oracle Server with ODBC.
 
   `conn` expects a `Oracleex` process identifier.
 
@@ -98,7 +104,7 @@ defmodule Oracleex do
   end
 
   @doc """
-  Executes a query against an MS SQL Server with ODBC.
+  Executes a query against an Oracle Server with ODBC.
 
   Raises an error on failure. See `query/4` for details.
   """

@@ -112,43 +112,15 @@ defmodule Oracleex.TypesTest do
     assert Decimal.equal?(number, value)
   end
 
-  test "smalldatetime as tuple", %{pid: pid} do
-    assert {_query, %Result{columns: ["TEST"],
-      rows: [[{{2017, 1, 1}, {12, 10, 0, 0}}]]}} = act(pid, "date",
-      [{{2017, 1, 1}, {12, 10, 0, 0}}])
-  end
-
-  test "datetime as tuple", %{pid: pid} do
-    assert {_query, %Result{columns: ["TEST"],
-      rows: [[{{2017, 1, 1}, {12, 10, 0, 0}}]]}} = act(pid, "timestamp",
-      [{{2017, 1, 1}, {12, 10, 0, 0}}])
-  end
-
-  test "datetime2 as tuple", %{pid: pid} do
+  test "timestamp as tuple", %{pid: pid} do
     assert {_query, %Result{columns: ["TEST"],
       rows: [[{{2017, 1, 1}, {12, 10, 0, 0}}]]}} = act(pid, "timestamp",
       [{{2017, 1, 1}, {12, 10, 0, 0}}])
   end
 
   test "date as tuple", %{pid: pid} do
-    assert {_query, %Result{columns: ["TEST"], rows: [["2017-01-01"]]}} =
+    assert {_query, %Result{columns: ["TEST"], rows: [[{{2017, 1, 1}, {0, 0, 0, 0}}]]}} =
       act(pid, "date", [{2017, 1, 1}])
-  end
-
-  test "time as tuple", %{pid: pid} do
-    do_act = fn pid, type, params ->
-      Oracleex.query(pid, "drop table #{table_name(type)}", [])
-      Oracleex.query!(pid,
-        "create table #{table_name(type)} (test #{type})", [])
-      Oracleex.query!(pid,
-        "insert into #{table_name(type)} values (?)", params)
-      result = Oracleex.query!(pid,
-        "select convert(nvarchar(15), test, 21) from #{table_name(type)}", [])
-      Oracleex.query(pid, "drop table #{table_name(type)}", [])
-      result
-    end
-    assert {_query, %Result{rows: [["12:10:00.000054"]]}} =
-      do_act.(pid, "time(6)", [{12, 10, 0, 54}])
   end
 
   test "null", %{pid: pid} do
