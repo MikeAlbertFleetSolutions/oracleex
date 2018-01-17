@@ -1,0 +1,27 @@
+defmodule Oracleex.Mixfile do
+  use Mix.Project
+
+  def project do
+    [
+      app: :Oracleex,
+      version: "0.1.0",
+      description: "Adapter to Oracle. Using DBConnection and ODBC.",
+      elixir: "~> 1.4",
+      build_embedded: Mix.env == :prod,
+      start_permanent: Mix.env == :prod,
+      deps: deps()
+    ]
+  end
+
+  def application do
+    [extra_applications: [:logger, :odbc]]
+  end
+
+  defp deps do
+    [
+      {:db_connection, "~> 1.1"},
+      {:decimal, "~> 1.0"},
+      {:credo, "~> 0.9.0-rc1", only: [:dev, :test], runtime: false}
+    ]
+  end
+end

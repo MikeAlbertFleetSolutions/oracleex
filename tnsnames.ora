@@ -1,0 +1,11 @@
+db=
+  (DESCRIPTION=
+    (ADDRESS=
+      (PROTOCOL=TCP)
+      (HOST=db)
+      (PORT=1521)
+    )
+    (CONNECT_DATA=
+      (SERVICE_NAME=ORCLPDB1)
+    )
+  )

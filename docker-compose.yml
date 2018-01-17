@@ -1,0 +1,18 @@
+version: '2'
+services:
+  db:
+    image: mafs/oracledb:12.1.0.2-ee-webca
+    ports:
+      - 1521:1521
+
+  oracleex:
+    build: .
+    volumes:
+      - ${WORKSPACE}/Oracleex/:/app
+    environment:
+      - ORACLE_DSN=OracleODBC-12c
+      - ORACLE_SERVICE=db
+      - ORACLE_USR=web_ca
+      - ORACLE_PWD=bitsandbobs
+    depends_on:
+      - db
