@@ -20,8 +20,7 @@ defmodule Oracleex.Mixfile do
   defp deps do
     [
       {:db_connection, "~> 1.1"},
-      {:decimal, "~> 1.0"},
-      {:credo, "~> 0.9.0-rc1", only: [:dev, :test], runtime: false}
+      {:decimal, "~> 1.0"}
     ]
   end
 end
