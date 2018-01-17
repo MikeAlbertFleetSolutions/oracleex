@@ -21,7 +21,7 @@ defmodule Oracleex.Error do
   @spec exception(binary()) :: t()
   def exception({odbc_code, native_code, reason} = message) do
     %__MODULE__{
-      message: to_string(reason) <> " | ODBC_CODE " <> to_string(odbc_code) <> " | SQL_SERVER_CODE " <> to_string(native_code),
+      message: to_string(reason) <> " | ODBC_CODE " <> to_string(odbc_code) <> " | ORACLE_CODE ORA-" <> String.pad_leading(to_string(native_code), 5, "0"),
       odbc_code: get_code(message),
       constraint_violations: get_constraint_violations(to_string reason)
     }

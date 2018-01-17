@@ -23,8 +23,8 @@ defmodule Oracleex.Protocol do
 
   * `:pid`: the pid of the ODBC process
   * `:oracle`: the transaction state. Can be `:idle` (not in a transaction),
-    `:transaction` (in a transaction) or `:auto_commit` (connection in
-    autocommit mode)
+      `:transaction` (in a transaction) or `:auto_commit` (connection in
+      autocommit mode)
   * `:conn_opts`: the options used to set up the connection.
   """
   @type state :: %__MODULE__{pid: pid(),

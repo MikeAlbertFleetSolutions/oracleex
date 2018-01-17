@@ -14,7 +14,7 @@ Oracleex depends on Oracle's ODBC Driver.  See the Dockerfile for how to install
 
 ## Testing
 
-Tests require an instance of Oracle to be running on `localhost` and the appropriate environmnet
+Tests require an instance of Oracle to be running on `localhost` and the appropriate environment
 variables to be set.  See the docker-compose file for details
 
 ### To start the database:
