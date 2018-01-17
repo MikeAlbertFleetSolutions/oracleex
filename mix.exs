@@ -3,7 +3,7 @@ defmodule Oracleex.Mixfile do
 
   def project do
     [
-      app: :Oracleex,
+      app: :oracleex,
       version: "0.1.0",
       description: "Adapter to Oracle. Using DBConnection and ODBC.",
       elixir: "~> 1.4",

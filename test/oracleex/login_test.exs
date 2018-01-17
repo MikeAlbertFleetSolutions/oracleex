@@ -9,11 +9,11 @@ defmodule Oracleex.LoginTest do
       Oracleex.query(pid, "SELECT 'test' from dual", [])
   end
 
-  test "Given invalid details, errors" do
-    Process.flag(:trap_exit, true)
-
-    assert {:ok, pid} = Oracleex.start_link([password: "badpassword", scrollable_cursors: :off])
-    assert_receive {:EXIT, ^pid,
-                    %Oracleex.Error{odbc_code: :invalid_authorization}}, 5_000
-  end
+  # test "Given invalid details, errors" do
+  #   Process.flag(:trap_exit, true)
+  #
+  #   assert {:ok, pid} = Oracleex.start_link([password: "badpassword", scrollable_cursors: :off])
+  #   assert_receive {:EXIT, ^pid,
+  #                   %Oracleex.Error{odbc_code: :invalid_authorization}}, 5_000
+  # end
 end
