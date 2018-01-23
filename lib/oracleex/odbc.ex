@@ -1,4 +1,6 @@
 defmodule Oracleex.ODBC do
+  require Logger
+
   @moduledoc """
   Adapter to Erlang's `:odbc` module.
 
@@ -25,8 +27,16 @@ defmodule Oracleex.ODBC do
   """
   @spec start_link(binary(), Keyword.t) :: {:ok, pid()}
   def start_link(conn_str, opts) do
-    GenServer.start_link(__MODULE__,
-      [{:conn_str, to_charlist(conn_str)} | opts])
+    {:ok, pid} = GenServer.start_link(__MODULE__, [{:conn_str, to_charlist(conn_str)} | opts])
+
+    # set oracle date format to match odbc
+    query(pid, "ALTER SESSION SET NLS_DATE_FORMAT ='YYYY-MM-DD HH24:MI:SS'", [], [])
+    query(pid, "ALTER SESSION SET NLS_TIMESTAMP_FORMAT ='YYYY-MM-DD HH24:MI:SS.FF'", [], [])
+
+    # doesn't work :-(
+    #    query(pid, "ALTER SESSION SET CURRENT_SCHEMA = #{opts[:database]}", [], [])
+
+    {:ok, pid}
   end
 
   @doc """
@@ -45,6 +55,9 @@ defmodule Oracleex.ODBC do
                                                         | {:updated, non_neg_integer()}}
                                                         | {:error, Exception.t}
   def query(pid, statement, params, opts) do
+    Logger.info fn ->
+      "#{inspect(pid)}: #{statement} #{inspect(params)}"
+    end
     if Process.alive?(pid) do
       GenServer.call(pid,
         {:query, %{statement: IO.iodata_to_binary(statement), params: params}},
@@ -111,6 +124,7 @@ defmodule Oracleex.ODBC do
     |> Keyword.put_new(:extended_errors, :on)
     |> Keyword.put_new(:tuple_row, :off)
     |> Keyword.put_new(:binary_strings, :on)
+    |> Keyword.put_new(:scrollable_cursors, :off)
 
     case handle_errors(:odbc.connect(opts[:conn_str], connect_opts)) do
       {:ok, pid} -> {:ok, pid}

@@ -47,7 +47,7 @@ defmodule Oracleex.TransactionTest do
       end)
       result
     end)
-    
+
     assert {:ok, _query, %Result{columns: ["NAME"],
       rows: [["Steven"], ["Tim"]]}} = Oracleex.query(pid,
       "select * from #{table_name};", [])
@@ -75,14 +75,6 @@ defmodule Oracleex.TransactionTest do
 
     assert {:ok, _, %Result{num_rows: 0}} =
       Oracleex.query(pid, "select * from #{table_name};", [])
-  end
-
-  test "failing transaction timeout test", %{pid: pid} do
-    assert_raise Oracleex.Error, fn ->
-    DBConnection.transaction(pid, fn _ ->
-        :timer.sleep(1000)
-      end, [timeout: 0])
-    end
   end
 
   test "manual rollback transaction test", %{pid: pid} do

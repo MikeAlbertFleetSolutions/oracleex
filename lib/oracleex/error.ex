@@ -55,6 +55,7 @@ defmodule Oracleex.Error do
   defp get_constraint_violations(reason) do
     constraint_checks =
       [unique: ~r/Violation of UNIQUE KEY constraint '(\S+?)'./,
+       unique: ~r/unique constraint .* violated '(\S+?)'/,
        unique: ~r/Cannot insert duplicate key row .* with unique index '(\S+?)'/,
        foreign_key: ~r/conflicted with the (?:FOREIGN KEY|REFERENCE) constraint "(\S+?)"./,
        check: ~r/conflicted with the CHECK constraint "(\S+?)"./]

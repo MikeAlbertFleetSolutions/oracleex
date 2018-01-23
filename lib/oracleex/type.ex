@@ -52,11 +52,12 @@ defmodule Oracleex.Type do
   end
 
   def encode({{year, month, day}, {hour, minute, sec, usec}}, _) do
-    precision = if usec == 0, do: 0, else: 2
+    precision = if usec == 0, do: 0, else: 6
     encoded = NaiveDateTime.from_erl!(
       {{year, month, day}, {hour, minute, sec}}, {usec, precision})
     |> to_string
     |> :unicode.characters_to_binary(:unicode, :latin1)
+
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
@@ -107,7 +108,12 @@ defmodule Oracleex.Type do
   @spec decode(:odbc.value(), opts :: Keyword.t) :: return_value()
 
   def decode(value, _) when is_float(value) do
-    Decimal.new(value)
+    int_val = Kernel.round(value)
+    if int_val == value do
+      int_val
+    else
+      Decimal.new(value)
+    end
   end
 
   def decode(value, opts) when is_binary(value) do

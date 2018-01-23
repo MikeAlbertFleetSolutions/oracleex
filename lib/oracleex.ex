@@ -36,13 +36,7 @@ defmodule Oracleex do
   """
   @spec start_link(Keyword.t) :: {:ok, pid}
   def start_link(opts) do
-    {:ok, pid} = DBConnection.start_link(Oracleex.Protocol, opts)
-
-    # set oracle date format to match odbc
-    Oracleex.query(pid, "ALTER SESSION SET NLS_DATE_FORMAT ='YYYY-MM-DD HH:MI:SS'", [])
-    Oracleex.query(pid, "ALTER SESSION SET NLS_TIMESTAMP_FORMAT ='YYYY-MM-DD HH:MI:SS'", [])
-
-    {:ok, pid}
+    DBConnection.start_link(Oracleex.Protocol, opts)
   end
 
   @doc """

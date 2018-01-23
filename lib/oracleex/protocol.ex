@@ -40,6 +40,7 @@ defmodule Oracleex.Protocol do
   @spec connect(opts :: Keyword.t) :: {:ok, state}
                                     | {:error, Exception.t}
   def connect(opts) do
+
     conn_opts = [
       {"DSN", opts[:dsn] || System.get_env("ORACLE_DSN") || "OracleODBC-12c"},
       {"DBQ", opts[:service] || System.get_env("ORACLE_SERVICE")},
@@ -49,7 +50,7 @@ defmodule Oracleex.Protocol do
     conn_str = Enum.reduce(conn_opts, "", fn {key, value}, acc ->
       acc <> "#{key}=#{value};" end)
 
-    case ODBC.start_link(conn_str, opts) do
+  case ODBC.start_link(conn_str, opts) do
       {:ok, pid} -> {:ok, %__MODULE__{
                         pid: pid,
                         conn_opts: opts,
@@ -155,7 +156,7 @@ defmodule Oracleex.Protocol do
        state}
     else
       handle_execute(
-        %Oracleex.Query{name: "", statement: "SAVE TRANSACTION Oracleex_savepoint"},
+        %Oracleex.Query{name: "", statement: "SAVEPOINT Oracleex_savepoint"},
         [], opts, state)
     end
   end
@@ -164,7 +165,7 @@ defmodule Oracleex.Protocol do
   end
   defp handle_savepoint(:rollback, opts, state) do
     handle_execute(
-      %Oracleex.Query{name: "", statement: "ROLLBACK TRANSACTION Oracleex_savepoint"},
+      %Oracleex.Query{name: "", statement: "ROLLBACK TO Oracleex_savepoint"},
       [], opts, state)
   end
 
@@ -233,7 +234,7 @@ defmodule Oracleex.Protocol do
   end
 
   def ping(state) do
-    query = %Oracleex.Query{name: "ping", statement: "SELECT 1"}
+    query = %Oracleex.Query{name: "ping", statement: "SELECT 1 FROM DUAL"}
     case do_query(query, [], [], state) do
       {:ok, _, new_state} -> {:ok, new_state}
       {:error, reason, new_state} -> {:disconnect, reason, new_state}
