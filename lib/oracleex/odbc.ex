@@ -33,9 +33,6 @@ defmodule Oracleex.ODBC do
     query(pid, "ALTER SESSION SET NLS_DATE_FORMAT ='YYYY-MM-DD HH24:MI:SS'", [], [])
     query(pid, "ALTER SESSION SET NLS_TIMESTAMP_FORMAT ='YYYY-MM-DD HH24:MI:SS.FF'", [], [])
 
-    # doesn't work :-(
-    #    query(pid, "ALTER SESSION SET CURRENT_SCHEMA = #{opts[:database]}", [], [])
-
     {:ok, pid}
   end
 
