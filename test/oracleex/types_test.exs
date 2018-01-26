@@ -59,10 +59,8 @@ defmodule Oracleex.TypesTest do
   end
 
   test "numeric(15, 0) as decimal", %{pid: pid} do
-    number = Decimal.new("123456789012345")
-    assert {_query, %Result{columns: ["TEST"], rows: [[%Decimal{} = value]]}} =
-      act(pid, "numeric(15)", [number])
-    assert Decimal.equal?(number, value)
+    assert {_query, %Result{columns: ["TEST"], rows: [[123456789012345]]}} =
+      act(pid, "numeric(15)", [Decimal.new(123456789012345)])
   end
 
   test "numeric(38, 0) as decimal", %{pid: pid} do

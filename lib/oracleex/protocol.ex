@@ -53,7 +53,7 @@ defmodule Oracleex.Protocol do
       acc <> "#{key}=#{value};" end)
 
     Logger.info fn ->
-      "#{conn_str}"
+      "[#{conn_str}] #{inspect(opts)}"
     end
 
     case ODBC.start_link(conn_str, opts) do

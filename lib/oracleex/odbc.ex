@@ -27,13 +27,15 @@ defmodule Oracleex.ODBC do
   """
   @spec start_link(binary(), Keyword.t) :: {:ok, pid()}
   def start_link(conn_str, opts) do
-    {:ok, pid} = GenServer.start_link(__MODULE__, [{:conn_str, to_charlist(conn_str)} | opts])
+    case GenServer.start_link(__MODULE__, [{:conn_str, to_charlist(conn_str)} | opts]) do
+      {:ok, pid} ->
+        # set oracle date format to match odbc
+        query(pid, "ALTER SESSION SET NLS_DATE_FORMAT ='YYYY-MM-DD HH24:MI:SS'", [], [])
+        query(pid, "ALTER SESSION SET NLS_TIMESTAMP_FORMAT ='YYYY-MM-DD HH24:MI:SS.FF'", [], [])
+        {:ok, pid}
 
-    # set oracle date format to match odbc
-    query(pid, "ALTER SESSION SET NLS_DATE_FORMAT ='YYYY-MM-DD HH24:MI:SS'", [], [])
-    query(pid, "ALTER SESSION SET NLS_TIMESTAMP_FORMAT ='YYYY-MM-DD HH24:MI:SS.FF'", [], [])
-
-    {:ok, pid}
+      response -> response
+    end
   end
 
   @doc """
