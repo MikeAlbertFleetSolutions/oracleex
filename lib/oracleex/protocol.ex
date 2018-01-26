@@ -1,4 +1,6 @@
 defmodule Oracleex.Protocol do
+  require Logger
+
   @moduledoc """
   Implementation of `DBConnection` behaviour for `Oracleex.ODBC`.
 
