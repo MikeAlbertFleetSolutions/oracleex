@@ -50,7 +50,11 @@ defmodule Oracleex.Protocol do
     conn_str = Enum.reduce(conn_opts, "", fn {key, value}, acc ->
       acc <> "#{key}=#{value};" end)
 
-  case ODBC.start_link(conn_str, opts) do
+    Logger.info fn ->
+      "#{conn_str}"
+    end
+
+    case ODBC.start_link(conn_str, opts) do
       {:ok, pid} -> {:ok, %__MODULE__{
                         pid: pid,
                         conn_opts: opts,
