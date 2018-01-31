@@ -1,6 +1,4 @@
 defmodule Oracleex.Protocol do
-  require Logger
-
   @moduledoc """
   Implementation of `DBConnection` behaviour for `Oracleex.ODBC`.
 
@@ -51,10 +49,6 @@ defmodule Oracleex.Protocol do
     ]
     conn_str = Enum.reduce(conn_opts, "", fn {key, value}, acc ->
       acc <> "#{key}=#{value};" end)
-
-    Logger.info fn ->
-      "[#{conn_str}] #{inspect(opts)}"
-    end
 
     case ODBC.start_link(conn_str, opts) do
       {:ok, pid} -> {:ok, %__MODULE__{
