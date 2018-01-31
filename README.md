@@ -6,6 +6,11 @@ It connects to [Ecto](https://github.com/elixir-ecto/ecto) with [OracleEcto](htt
 
 Based on [findmypast-oss/mssqlex](https://github.com/findmypast-oss/mssqlex)
 
+Here are a couple articles were they described the implementation:
+
+* [SQL Server in Elixir, Part 1: Connecting](http://tech.findmypast.com/sql-server-in-elixir-connection)
+* [SQL Server in Elixir, Part 2: Process Management](http://tech.findmypast.com/sql-server-in-elixir-gen-server)
+
 ## Installation
 
 Oracleex requires the [Erlang ODBC application](http://erlang.org/doc/man/odbc.html) to be installed.
