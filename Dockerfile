@@ -1,4 +1,4 @@
-FROM elixir:1.5
+FROM elixir:latest
 
 # set Locale to en_US.UTF-8
 ENV DEBIAN_FRONTEND noninteractive
