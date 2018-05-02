@@ -1,4 +1,6 @@
 defmodule Oracleex.ODBC do
+  require Logger
+
   @moduledoc """
   Adapter to Erlang's `:odbc` module.
 
@@ -52,6 +54,10 @@ defmodule Oracleex.ODBC do
                                                         | {:updated, non_neg_integer()}}
                                                         | {:error, Exception.t}
   def query(pid, statement, params, opts) do
+    # Logger.info fn ->
+    #   "#{inspect(pid)}: #{statement} #{inspect(params)} #{inspect(opts)}"
+    # end
+
     if Process.alive?(pid) do
       GenServer.call(pid,
         {:query, %{statement: IO.iodata_to_binary(statement), params: params}},
