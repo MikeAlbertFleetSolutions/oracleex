@@ -133,7 +133,7 @@ defmodule Oracleex.Type do
   end
 
   def decode({date, {h, m, s}}, _) do
-    {date, {h, m, s, 0}}
+    {date, {h, m, s}}
   end
 
   def decode(value, _) do

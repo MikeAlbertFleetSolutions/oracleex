@@ -112,12 +112,12 @@ defmodule Oracleex.TypesTest do
 
   test "timestamp as tuple", %{pid: pid} do
     assert {_query, %Result{columns: ["TEST"],
-      rows: [[{{2017, 1, 1}, {12, 10, 0, 0}}]]}} = act(pid, "timestamp",
+      rows: [[{{2017, 1, 1}, {12, 10, 0}}]]}} = act(pid, "timestamp",
       [{{2017, 1, 1}, {12, 10, 0, 0}}])
   end
 
   test "date as tuple", %{pid: pid} do
-    assert {_query, %Result{columns: ["TEST"], rows: [[{{2017, 1, 1}, {0, 0, 0, 0}}]]}} =
+    assert {_query, %Result{columns: ["TEST"], rows: [[{{2017, 1, 1}, {0, 0, 0}}]]}} =
       act(pid, "date", [{2017, 1, 1}])
   end
 
