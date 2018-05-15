@@ -116,6 +116,7 @@ defmodule Oracleex.TypesTest do
       [{{2017, 1, 1}, {12, 10, 0, 0}}])
   end
 
+  # ERLANG ODBC with the Oracle ODBC driver seems to be always returning the Date Time tuple not just the Date tuple; so this is what we have to expect
   test "date as tuple", %{pid: pid} do
     assert {_query, %Result{columns: ["TEST"], rows: [[{{2017, 1, 1}, {0, 0, 0}}]]}} =
       act(pid, "date", [{2017, 1, 1}])
