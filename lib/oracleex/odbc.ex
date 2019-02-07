@@ -109,7 +109,20 @@ defmodule Oracleex.ODBC do
   """
   @spec disconnect(pid()) :: :ok
   def disconnect(pid) do
-    rollback(pid)
+    # attempt rollback
+    try do
+      rollback(pid)
+    rescue
+      _ -> nil
+    catch
+      :exit, {:error, msg} ->
+        IO.puts("rollback exit: #{msg}")
+
+      x ->
+        IO.puts("rollback non local return #{inspect x}")
+    end
+
+    # stop genserver
     GenServer.stop(pid, :normal)
   end
 
