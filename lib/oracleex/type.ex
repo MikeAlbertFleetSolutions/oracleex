@@ -112,7 +112,7 @@ defmodule Oracleex.Type do
     if int_val == value do
       int_val
     else
-      Decimal.new(value)
+      Decimal.from_float(value)
     end
   end
 
