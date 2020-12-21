@@ -1,7 +1,12 @@
 version: '3'
 services:
+  # db:
+  #   image: mafs/oracledb:web_ca-db
+  #   ports:
+  #     - 1521:1521
+
   db:
-    image: mafs/oracledb:web_ca-db
+    image: mafs/oracledb:web_ca-19.3.0-se2
     ports:
       - 1521:1521
 
