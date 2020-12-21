@@ -27,7 +27,7 @@ variables to be set.  See the docker-compose file for details
 ### To start the database:
 
 ```bash
-docker-compose start db
+docker-compose up db
 ```
 
 ### To open a shell at the app root:

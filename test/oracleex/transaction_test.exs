@@ -4,7 +4,7 @@ defmodule Oracleex.TransactionTest do
   alias Oracleex.Result
 
   setup_all do
-    {:ok, pid} = Oracleex.start_link([dsn: "OracleODBC-12c", service: "db", username: "web_ca", password: "bitsandbobs", scrollable_cursors: :off])
+    {:ok, pid} = Oracleex.start_link([dsn: "OracleODBC-19", service: "db", username: "web_ca", password: "bitsandbobs", scrollable_cursors: :off])
     Oracleex.query(pid, "drop table web_ca.simple", [])
     Oracleex.query(pid, "drop table web_ca.nested", [])
     Oracleex.query(pid, "drop table web_ca.failing", [])
