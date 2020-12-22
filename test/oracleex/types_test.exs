@@ -125,7 +125,6 @@ defmodule Oracleex.TypesTest do
   test "null", %{pid: pid} do
     type = "char(13)"
 
-    Oracleex.query(pid, "drop table #{table_name(type)}", [])
     Oracleex.query!(pid,
       "create table #{table_name(type)} (test #{type}, num number)", [])
     Oracleex.query!(pid,
@@ -139,22 +138,25 @@ defmodule Oracleex.TypesTest do
   end
 
   test "invalid input type", %{pid: pid} do
+    type = "char(10)"
     assert_raise Oracleex.Error, ~r/unrecognised type/, fn ->
-      act(pid, "char(10)", [{"Nathan"}])
+      act(pid, type, [{"Nathan"}])
     end
+    Oracleex.query(pid, "drop table #{table_name(type)}", [])
   end
 
   test "invalid input binary", %{pid: pid} do
+    type = "char(12)"
     assert_raise Oracleex.Error, ~r/failed to convert/, fn ->
-      act(pid, "char(12)", [<<110, 0, 200>>])
+      act(pid, type, [<<110, 0, 200>>])
     end
+    Oracleex.query(pid, "drop table #{table_name(type)}", [])
   end
 
   defp table_name(type) do
     ~s(web_ca."#{Base.url_encode64 type}")
   end
   defp act(pid, type, params, opts \\ []) do
-    Oracleex.query(pid, "drop table #{table_name(type)}", [])
 
     Oracleex.query!(pid,
       "create table #{table_name(type)} (test #{type})", [], opts)
