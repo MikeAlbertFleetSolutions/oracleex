@@ -188,7 +188,7 @@ defmodule Oracleex.Protocol do
       :idle ->
         with {:ok, _, post_commit_state} <- handle_commit(opts, new_state)
         do
-          {status, message, post_commit_state}
+          {status, query, message, post_commit_state}
         end
       :transaction -> {status, message, new_state}
       :auto_commit ->
