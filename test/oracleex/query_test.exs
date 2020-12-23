@@ -5,9 +5,6 @@ defmodule Oracleex.QueryTest do
 
   setup_all do
     {:ok, pid} = Oracleex.start_link([dsn: "OracleODBC-19", service: "db", username: "web_ca", password: "bitsandbobs", scrollable_cursors: :off])
-    Oracleex.query(pid, "drop table web_ca.simple_select", [])
-    Oracleex.query(pid, "drop table web_ca.parametrized_query", [])
-
     {:ok, [pid: pid]}
   end
 
@@ -20,6 +17,8 @@ defmodule Oracleex.QueryTest do
 
     assert {:ok, _, %Result{columns: ["NAME"], num_rows: 1, rows: [["Steven"]]}}
       = Oracleex.query(pid, "select * from web_ca.simple_select", [])
+
+    Oracleex.query(pid, "drop table web_ca.simple_select", [])
   end
 
   test "parametrized queries", %{pid: pid} do
@@ -36,5 +35,7 @@ defmodule Oracleex.QueryTest do
                num_rows: 1,
                rows: [["1", "Tim", _]]}} =
       Oracleex.query(pid, "select * from web_ca.parametrized_query", [])
+
+    Oracleex.query(pid, "drop table web_ca.parametrized_query", [])
   end
 end

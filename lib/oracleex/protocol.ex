@@ -179,7 +179,7 @@ defmodule Oracleex.Protocol do
 
   @doc false
   @spec handle_execute(query, params, opts :: Keyword.t, state) ::
-    {:ok, result, state} |
+    {:ok, query, result, state} |
     {:error | :disconnect, Exception.t, state}
   def handle_execute(query, params, opts, state) do
     {status, message, new_state} = do_query(query, params, opts, state)
@@ -190,11 +190,11 @@ defmodule Oracleex.Protocol do
         do
           {status, query, message, post_commit_state}
         end
-      :transaction -> {status, message, new_state}
+      :transaction -> {status, query, message, new_state}
       :auto_commit ->
         with {:ok, post_connect_state} <- switch_auto_commit(:off, new_state)
         do
-          {status, message, post_connect_state}
+          {status, query, message, post_connect_state}
         end
     end
   end
