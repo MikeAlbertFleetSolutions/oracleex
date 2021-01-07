@@ -195,8 +195,15 @@ defmodule Oracleex.Protocol do
           end
       end
     else
-      {status, message, new_state} -> {status, message, new_state}
+      {status, message, new_state} -> handle_execute_error_disconnect(new_state, status, message)
     end
+  end
+
+  defp handle_execute_error_disconnect(%{oracle: :transaction} =  state, status, message) do
+    {status, message, %{state | oracle: :error}}
+  end
+  defp handle_execute_error_disconnect(state, status, message) do
+    {status, message, state}
   end
 
   defp do_query(query, params, opts, state) do

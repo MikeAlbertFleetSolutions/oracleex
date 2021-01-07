@@ -78,6 +78,31 @@ defmodule Oracleex.TransactionTest do
     Oracleex.query(pid, "drop table #{table_name}", [])
   end
 
+  # Revisit this test if we think we need to; I'm not sure whether it is covered here or in ecto.
+  # test "failing transaction test - #2", %{pid: pid} do
+  #   table_name = "web_ca.failing"
+
+  #   Oracleex.query(pid, "drop table #{table_name}", [])
+
+  #   Oracleex.query!(pid,
+  #     "create table #{table_name} (name varchar(3));", [])
+
+  #   asdf =
+  #     DBConnection.transaction(pid, fn pid ->
+  #         Oracleex.query(pid,
+  #           "insert into #{table_name} values ('Tim');", [])
+  #         Oracleex.query(pid,
+  #           "insert into #{table_name} values ('Steven');", [])
+  #     end)
+
+  #   IO.inspect asdf
+
+  #   assert {:ok, _, %Result{num_rows: 0}} =
+  #     Oracleex.query(pid, "select * from #{table_name};", [])
+
+  #   Oracleex.query(pid, "drop table #{table_name}", [])
+  # end
+
   test "manual rollback transaction test", %{pid: pid} do
     table_name = "web_ca.roll_back"
 
@@ -132,4 +157,44 @@ defmodule Oracleex.TransactionTest do
 
     Oracleex.query(pid, "drop table #{table_name}", [])
   end
+
+  test "manual rollback transaction test - complex", %{pid: pid} do
+    table_name = "web_ca.roll_back_complex"
+
+    Oracleex.query!(pid,
+      "create table #{table_name} (name varchar(3));", [])
+
+    assert {:error, :rollback} =
+      DBConnection.transaction(pid, fn pid ->
+        with {:ok, _} <- DBConnection.transaction(pid, fn pid ->
+          with {:ok, _, result} <-
+                Oracleex.query(pid,
+                  "insert into #{table_name} values ('Steven');", [])
+            do
+              result
+            else
+              {:error, reason} -> DBConnection.rollback(pid, reason)
+          end
+        end),
+        {:ok, result} <- DBConnection.transaction(pid, fn pid ->
+          with {:ok, _, result} <-
+                Oracleex.query(pid,
+                  "insert into #{table_name} values ('Tim');", [])
+            do
+              result
+            else
+              {:error, reason} -> DBConnection.rollback(pid, reason)
+          end
+        end)
+        do
+          result
+        end
+      end)
+
+    assert {:ok, _, %Result{num_rows: 0}} =
+      Oracleex.query(pid, "select * from #{table_name};", [])
+
+    Oracleex.query(pid, "drop table #{table_name}", [])
+  end
+
 end

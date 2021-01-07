@@ -11,6 +11,8 @@ Here are a couple articles were they described the implementation:
 * [SQL Server in Elixir, Part 1: Connecting](http://tech.findmypast.com/sql-server-in-elixir-connection)
 * [SQL Server in Elixir, Part 2: Process Management](http://tech.findmypast.com/sql-server-in-elixir-gen-server)
 
+AutoCommit (Auto_Commit) is 'on' by default in Oracle; but defaulted 'off' in code. We don't use this library with AutoCommit 'on' and as such the code around AutoCommit is not fully baked and tested. 
+
 ## Installation
 
 Oracleex requires the [Erlang ODBC application](http://erlang.org/doc/man/odbc.html) to be installed.
