@@ -58,7 +58,7 @@ defmodule Oracleex.TransactionTest do
     Oracleex.query!(pid,
       "create table #{table_name} (name varchar(3));", [])
 
-    assert_raise DBConnection.ConnectionError, fn ->
+    assert_raise Oracleex.Error, fn ->
       DBConnection.transaction(pid, fn pid ->
         {:ok, _} = DBConnection.transaction(pid, fn pid ->
           Oracleex.query!(pid,
@@ -80,7 +80,6 @@ defmodule Oracleex.TransactionTest do
 
   test "manual rollback transaction test", %{pid: pid} do
     table_name = "web_ca.roll_back"
-    # Oracleex.query(pid, "drop table #{table_name}", [])
 
     Oracleex.query!(pid,
       "create table #{table_name} (name varchar(3));", [])
@@ -103,6 +102,30 @@ defmodule Oracleex.TransactionTest do
           DBConnection.rollback(pid, :rollback)
         end
       end)
+
+    assert {:ok, _, %Result{num_rows: 0}} =
+      Oracleex.query(pid, "select * from #{table_name};", [])
+
+    Oracleex.query(pid, "drop table #{table_name}", [])
+  end
+
+  test "explicit rollback of failed insert", %{pid: pid} do
+    table_name = "web_ca.roll_back_again"
+    Oracleex.query(pid, "drop table #{table_name}", [])
+
+    Oracleex.query!(pid,
+      "create table #{table_name} (name varchar(3));", [])
+
+    assert {:error, %Oracleex.Error{}} = DBConnection.transaction(pid, fn pid ->
+      with {:ok, _, result} <-
+        Oracleex.query(pid,
+          "insert into #{table_name} values ('Steven');", [])
+        do
+          result
+        else
+          {:error, reason} -> DBConnection.rollback(pid, reason)
+      end
+    end)
 
     assert {:ok, _, %Result{num_rows: 0}} =
       Oracleex.query(pid, "select * from #{table_name};", [])

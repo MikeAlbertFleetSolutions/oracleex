@@ -38,4 +38,21 @@ defmodule Oracleex.QueryTest do
 
     Oracleex.query(pid, "drop table web_ca.parametrized_query", [])
   end
+
+  test "implicit fail of insert, works in isolation", %{pid: pid} do
+    table_name = "web_ca.roll_back_again"
+    Oracleex.query(pid, "drop table #{table_name}", [])
+
+    Oracleex.query!(pid,
+      "create table #{table_name} (name varchar(3));", [])
+
+    assert {:error, %Oracleex.Error{}} = Oracleex.query(pid,
+      "insert into #{table_name} values ('Steven');", [])
+
+    assert {:ok, %Oracleex.Query{}, %Oracleex.Result{num_rows: 1}} = Oracleex.query(pid,
+      "insert into #{table_name} values ('Tom');", [])
+
+    Oracleex.query(pid, "drop table #{table_name}", [])
+  end
+
 end

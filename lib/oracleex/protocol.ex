@@ -179,20 +179,23 @@ defmodule Oracleex.Protocol do
     {:ok, query, result, state} |
     {:error | :disconnect, Exception.t, state}
   def handle_execute(query, params, opts, state) do
-    {status, message, new_state} = do_query(query, params, opts, state)
-
-    case new_state.oracle do
-      :idle ->
-        with {:ok, _, post_commit_state} <- handle_commit(opts, new_state)
-        do
-          {status, query, message, post_commit_state}
-        end
-      :transaction -> {status, query, message, new_state}
-      :auto_commit ->
-        with {:ok, post_connect_state} <- switch_auto_commit(:off, new_state)
-        do
-          {status, query, message, post_connect_state}
-        end
+    with {:ok, message, new_state} <- do_query(query, params, opts, state)
+    do
+      case new_state.oracle do
+        :idle ->
+          with {:ok, _, post_commit_state} <- handle_commit(opts, new_state)
+          do
+            {:ok, query, message, post_commit_state}
+          end
+        :transaction -> {:ok, query, message, new_state}
+        :auto_commit ->
+          with {:ok, post_connect_state} <- switch_auto_commit(:off, new_state)
+          do
+            {:ok, query, message, post_connect_state}
+          end
+      end
+    else
+      {status, message, new_state} -> {status, message, new_state}
     end
   end
 
