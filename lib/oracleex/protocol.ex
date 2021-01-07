@@ -35,6 +35,7 @@ defmodule Oracleex.Protocol do
   @type params :: [{:odbc.odbc_data_type(), :odbc.value()}]
   @type result :: Result.t
   @type cursor :: any
+  @type status :: :idle | :transaction | :error
 
   @doc false
   @spec connect(opts :: Keyword.t) :: {:ok, state}
@@ -128,24 +129,20 @@ defmodule Oracleex.Protocol do
   defp handle_transaction(:begin, _opts, state) do
     case state.oracle do
       :idle -> {:ok, %Result{num_rows: 0}, %{state | oracle: :transaction}}
-      :transaction -> {:error,
-      %Oracleex.Error{message: "Already in transaction"},
-      state}
-      :auto_commit -> {:error,
-      %Oracleex.Error{message: "Transactions not allowed in autocommit mode"},
-      state}
+      :transaction -> {:error, state}
+      :auto_commit -> {:error, state}
     end
   end
   defp handle_transaction(:commit, _opts, state) do
     case ODBC.commit(state.pid) do
       :ok -> {:ok, %Result{}, %{state | oracle: :idle}}
-      {:error, reason} -> {:error, reason, state}
+      {:error, reason} -> {:error, %{state | oracle: :error}}
     end
   end
   defp handle_transaction(:rollback, _opts, state) do
     case ODBC.rollback(state.pid) do
       :ok -> {:ok, %Result{}, %{state | oracle: :idle}}
-      {:error, reason} -> {:disconnect, reason, state}
+      {:error, reason} -> {:disconnect, DBConnection.TransactionError.exception(reason), %{state | oracle: :error}}
     end
   end
 
@@ -241,4 +238,28 @@ defmodule Oracleex.Protocol do
       other -> other
     end
   end
+
+  @doc false
+  @spec handle_status(opts :: Keyword.t(), state :: any()) ::
+    {status(), new_state :: any()} |
+    {:disconnect, Exception.t(), new_state :: any()}
+  def handle_status(_opts, state) do
+    status = status_state(state)
+    {status, state}
+  end
+
+  defp status_state(state) do
+    case state.oracle do
+      :idle -> :idle
+      :transaction -> :transaction
+      :auto_commit -> :error
+      :error -> :error
+    end
+  end
+
+  # TODO: mark not implemented
+  # handle_deallocate
+  # handle_declare
+  # handle_fetch
+
 end
