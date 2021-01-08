@@ -8,7 +8,7 @@ services:
   db:
     image: mafs/oracledb:web_ca-19.3.0-se2
     ports:
-      - 1521:1521
+      - 1531:1521
 
   oracleex:
     build:

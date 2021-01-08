@@ -9,6 +9,8 @@ defmodule Oracleex.Type do
     | date()
     | time()
     | datetime()
+    | NaiveDateTime.t()
+    | Date.t()
     | Decimal.t()
 
   @typedoc "Output value."
@@ -36,6 +38,13 @@ defmodule Oracleex.Type do
     {:sql_bit, [value]}
   end
 
+  def encode(%Date{} = date, _) do
+    date |> Date.to_erl |> encode(nil)
+  end
+  def encode(%NaiveDateTime{} = date_time, _) do
+    date_time |> NaiveDateTime.to_erl() |> encode(nil)
+  end
+
   def encode({_year, _month, _day} = date, _) do
     encoded = Date.from_erl!(date)
     |> to_string
@@ -49,6 +58,10 @@ defmodule Oracleex.Type do
     |> to_string
     |> :unicode.characters_to_binary(:unicode, :latin1)
     {{:sql_varchar, String.length(encoded)}, [encoded]}
+  end
+
+  def encode({{year, month, day}, {hour, minute, sec}}, value) do
+    encode({{year, month, day}, {hour, minute, sec, 0}}, value)
   end
 
   def encode({{year, month, day}, {hour, minute, sec, usec}}, _) do
