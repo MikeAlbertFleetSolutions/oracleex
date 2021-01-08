@@ -16,8 +16,7 @@ defmodule Oracleex.Type do
   @typedoc "Output value."
   @type return_value :: bitstring()
     | integer()
-    | date()
-    | datetime()
+    | NaiveDateTime.t()
     | Decimal.t()
 
   @typedoc "Date as `{year, month, day}`"
@@ -146,7 +145,7 @@ defmodule Oracleex.Type do
   end
 
   def decode({date, {h, m, s}}, _) do
-    {date, {h, m, s}}
+    {date, {h, m, s}} |> NaiveDateTime.from_erl!()
   end
 
   def decode(value, _) do
