@@ -10,6 +10,7 @@ defmodule Oracleex.Type do
     | time()
     | datetime()
     | NaiveDateTime.t()
+    | DateTime.t()
     | Date.t()
     | Decimal.t()
 
@@ -39,6 +40,9 @@ defmodule Oracleex.Type do
 
   def encode(%Date{} = date, _) do
     date |> Date.to_erl |> encode(nil)
+  end
+  def encode(%DateTime{} = date_time, _) do
+    date_time |> DateTime.to_naive() |> NaiveDateTime.to_erl() |> encode(nil)
   end
   def encode(%NaiveDateTime{} = date_time, _) do
     date_time |> NaiveDateTime.to_erl() |> encode(nil)

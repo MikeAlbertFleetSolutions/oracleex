@@ -56,7 +56,7 @@ docker-compose -f docker-compose.19c.yml up db
 ### To open a shell at the app root:
 
 ```bash
-docker-compose -f docker-compose.19c.yml run oracleex
+docker-compose -f docker-compose.19c.yml run --rm oracleex
 ```
 
 ### To run the unit tests:
