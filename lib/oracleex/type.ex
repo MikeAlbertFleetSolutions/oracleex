@@ -63,8 +63,8 @@ defmodule Oracleex.Type do
     {{:sql_varchar, String.length(encoded)}, [encoded]}
   end
 
-  def encode({{year, month, day}, {hour, minute, sec}}, value) do
-    encode({{year, month, day}, {hour, minute, sec, 0}}, value)
+  def encode({{year, month, day}, {hour, minute, sec}}, _) do
+    encode({{year, month, day}, {hour, minute, sec, 0}}, nil)
   end
 
   def encode({{year, month, day}, {hour, minute, sec, usec}}, _) do
