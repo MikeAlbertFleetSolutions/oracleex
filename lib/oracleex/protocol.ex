@@ -136,13 +136,13 @@ defmodule Oracleex.Protocol do
   defp handle_transaction(:commit, _opts, state) do
     case ODBC.commit(state.pid) do
       :ok -> {:ok, %Result{}, %{state | oracle: :idle}}
-      {:error, reason} -> {:error, %{state | oracle: :error}}
+      {:error, reason} -> {:error, %{state | oracle: :idle}}
     end
   end
   defp handle_transaction(:rollback, _opts, state) do
     case ODBC.rollback(state.pid) do
       :ok -> {:ok, %Result{}, %{state | oracle: :idle}}
-      {:error, reason} -> {:disconnect, DBConnection.TransactionError.exception(reason), %{state | oracle: :error}}
+      {:error, reason} -> {:disconnect, DBConnection.TransactionError.exception(reason), %{state | oracle: :idle}}
     end
   end
 
@@ -152,18 +152,30 @@ defmodule Oracleex.Protocol do
        %Oracleex.Error{message: "savepoint not allowed in autocommit mode"},
        state}
     else
-      handle_execute(
+      execute_result  = handle_execute(
         %Oracleex.Query{name: "", statement: "SAVEPOINT Oracleex_savepoint"},
         [], opts, state)
+
+      case execute_result do
+        {:ok, _query, result, state} -> {:ok, result, state}
+        {:error, _exception, state} -> {:error, %{state | oracle: :idle}}
+        {:disconnect, exception, state} -> {:disconnect, exception, %{state | oracle: :idle}}
+      end
     end
   end
   defp handle_savepoint(:commit, _opts, state) do
     {:ok, %Result{}, state}
   end
   defp handle_savepoint(:rollback, opts, state) do
-    handle_execute(
+    execute_result = handle_execute(
       %Oracleex.Query{name: "", statement: "ROLLBACK TO Oracleex_savepoint"},
       [], opts, state)
+
+    case execute_result do
+      {:ok, _query, result, state} -> {:ok, result, state}
+      {:error, _exception, state} -> {:error, %{state | oracle: :idle}}
+      {:disconnect, exception, state} -> {:disconnect, exception, %{state | oracle: :idle}}
+    end
   end
 
   @doc false
@@ -187,7 +199,8 @@ defmodule Oracleex.Protocol do
           do
             {:ok, query, message, post_commit_state}
           end
-        :transaction -> {:ok, query, message, new_state}
+        :transaction ->
+          {:ok, query, message, new_state}
         :auto_commit ->
           with {:ok, post_connect_state} <- switch_auto_commit(:off, new_state)
           do
@@ -195,19 +208,23 @@ defmodule Oracleex.Protocol do
           end
       end
     else
-      {status, message, new_state} -> handle_execute_error_disconnect(new_state, status, message)
+      {status, message, new_state} ->
+        handle_execute_error_disconnect(new_state, status, message)
     end
   end
 
   defp handle_execute_error_disconnect(%{oracle: :transaction} =  state, status, message) do
-    {status, message, %{state | oracle: :error}}
+    {status, message, %{state | oracle: :idle}}
   end
   defp handle_execute_error_disconnect(state, status, message) do
     {status, message, state}
   end
 
   defp do_query(query, params, opts, state) do
-    case ODBC.query(state.pid, query.statement, params, opts) do
+    result = ODBC.query(state.pid, query.statement, params, opts)
+    #IO.inspect result, label: "result"
+    #IO.inspect query, label: "query"
+    case result do
       {:error,
         %Oracleex.Error{odbc_code: :not_allowed_in_transaction} = reason} ->
         if state.oracle == :auto_commit do
@@ -222,9 +239,14 @@ defmodule Oracleex.Protocol do
       {:error, reason} ->
         {:error, reason, state}
       {:selected, columns, rows} ->
+
         {:ok, %Result{columns: Enum.map(columns, &(to_string(&1))), rows: rows, num_rows: Enum.count(rows)}, state}
       {:updated, num_rows} ->
-        {:ok, %Result{num_rows: num_rows}, state}
+        if num_rows == :undefined do
+          {:ok, %Result{num_rows: 1}, state}
+        else
+          {:ok, %Result{num_rows: num_rows}, state}
+        end
     end
   end
 
@@ -259,6 +281,7 @@ defmodule Oracleex.Protocol do
   end
 
   defp status_state(state) do
+    IO.inspect state.oracle, label: "status_state"
     case state.oracle do
       :idle -> :idle
       :transaction -> :transaction
