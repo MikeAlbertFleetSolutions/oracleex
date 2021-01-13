@@ -142,7 +142,7 @@ defmodule Oracleex.Protocol do
   defp handle_transaction(:rollback, _opts, state) do
     case ODBC.rollback(state.pid) do
       :ok -> {:ok, %Result{}, %{state | oracle: :idle}}
-      {:error, reason} -> {:disconnect, DBConnection.TransactionError.exception(reason), %{state | oracle: :idle}}
+      {:error, reason} -> {:disconnect, Oracleex.Error.exception(reason), %{state | oracle: :idle}}
     end
   end
 
