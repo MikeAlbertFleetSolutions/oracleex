@@ -157,7 +157,7 @@ defmodule Oracleex.Protocol do
         [], opts, state)
 
       case execute_result do
-        {:ok, _query, result, state} -> {:ok, result, state}
+        {:ok, _query, result, state} -> {:ok, result, %{state | oracle: :transaction}}
         {:error, _exception, state} -> {:error, %{state | oracle: :idle}}
         {:disconnect, exception, state} -> {:disconnect, exception, %{state | oracle: :idle}}
       end
@@ -172,7 +172,7 @@ defmodule Oracleex.Protocol do
       [], opts, state)
 
     case execute_result do
-      {:ok, _query, result, state} -> {:ok, result, state}
+      {:ok, _query, result, state} -> {:ok, result, %{state | oracle: :idle}}
       {:error, _exception, state} -> {:error, %{state | oracle: :idle}}
       {:disconnect, exception, state} -> {:disconnect, exception, %{state | oracle: :idle}}
     end
@@ -222,8 +222,6 @@ defmodule Oracleex.Protocol do
 
   defp do_query(query, params, opts, state) do
     result = ODBC.query(state.pid, query.statement, params, opts)
-    #IO.inspect result, label: "result"
-    #IO.inspect query, label: "query"
     case result do
       {:error,
         %Oracleex.Error{odbc_code: :not_allowed_in_transaction} = reason} ->
@@ -281,7 +279,6 @@ defmodule Oracleex.Protocol do
   end
 
   defp status_state(state) do
-    IO.inspect state.oracle, label: "status_state"
     case state.oracle do
       :idle -> :idle
       :transaction -> :transaction
