@@ -1,10 +1,8 @@
 defmodule Oracleex.Protocol do
   @moduledoc """
   Implementation of `DBConnection` behaviour for `Oracleex.ODBC`.
-
   Handles translation of concepts to what ODBC expects and holds
   state for a connection.
-
   This module is not called directly, but rather through
   other `Oracleex` modules or `DBConnection` functions.
   """
@@ -18,9 +16,7 @@ defmodule Oracleex.Protocol do
 
   @typedoc """
   Process state.
-
   Includes:
-
   * `:pid`: the pid of the ODBC process
   * `:oracle`: the transaction state. Can be `:idle` (not in a transaction),
       `:transaction` (in a transaction) or `:auto_commit` (connection in
@@ -129,20 +125,24 @@ defmodule Oracleex.Protocol do
   defp handle_transaction(:begin, _opts, state) do
     case state.oracle do
       :idle -> {:ok, %Result{num_rows: 0}, %{state | oracle: :transaction}}
-      :transaction -> {:error, state}
-      :auto_commit -> {:error, state}
+      :transaction -> {:error,
+      %Oracleex.Error{message: "Already in transaction"},
+      state}
+      :auto_commit -> {:error,
+      %Oracleex.Error{message: "Transactions not allowed in autocommit mode"},
+      state}
     end
   end
   defp handle_transaction(:commit, _opts, state) do
     case ODBC.commit(state.pid) do
       :ok -> {:ok, %Result{}, %{state | oracle: :idle}}
-      {:error, reason} -> {:error, %{state | oracle: :idle}}
+      {:error, reason} -> {:error, reason, state}
     end
   end
   defp handle_transaction(:rollback, _opts, state) do
     case ODBC.rollback(state.pid) do
       :ok -> {:ok, %Result{}, %{state | oracle: :idle}}
-      {:error, reason} -> {:disconnect, Oracleex.Error.exception(reason), %{state | oracle: :idle}}
+      {:error, reason} -> {:disconnect, reason, state}
     end
   end
 
@@ -152,14 +152,14 @@ defmodule Oracleex.Protocol do
        %Oracleex.Error{message: "savepoint not allowed in autocommit mode"},
        state}
     else
-      execute_result  = handle_execute(
+      execute_result = handle_execute(
         %Oracleex.Query{name: "", statement: "SAVEPOINT Oracleex_savepoint"},
         [], opts, state)
 
       case execute_result do
-        {:ok, _query, result, state} -> {:ok, result, %{state | oracle: :transaction}}
-        {:error, _exception, state} -> {:error, %{state | oracle: :idle}}
-        {:disconnect, exception, state} -> {:disconnect, exception, %{state | oracle: :idle}}
+        {:ok, _query, result, state} -> {:ok, result, state}
+        {:error, _exception, state} -> {:error, state}
+        {:disconnect, exception, state} -> {:disconnect, exception, state}
       end
     end
   end
@@ -172,9 +172,9 @@ defmodule Oracleex.Protocol do
       [], opts, state)
 
     case execute_result do
-      {:ok, _query, result, state} -> {:ok, result, %{state | oracle: :idle}}
-      {:error, _exception, state} -> {:error, %{state | oracle: :idle}}
-      {:disconnect, exception, state} -> {:disconnect, exception, %{state | oracle: :idle}}
+      {:ok, _query, result, state} -> {:ok, result, state}
+      {:error, _exception, state} -> {:error, state}
+      {:disconnect, exception, state} -> {:disconnect, exception, state}
     end
   end
 
@@ -213,16 +213,12 @@ defmodule Oracleex.Protocol do
     end
   end
 
-  defp handle_execute_error_disconnect(%{oracle: :transaction} =  state, status, message) do
-    {status, message, %{state | oracle: :idle}}
-  end
   defp handle_execute_error_disconnect(state, status, message) do
     {status, message, state}
   end
 
   defp do_query(query, params, opts, state) do
-    result = ODBC.query(state.pid, query.statement, params, opts)
-    case result do
+    case ODBC.query(state.pid, query.statement, params, opts) do
       {:error,
         %Oracleex.Error{odbc_code: :not_allowed_in_transaction} = reason} ->
         if state.oracle == :auto_commit do
@@ -237,14 +233,9 @@ defmodule Oracleex.Protocol do
       {:error, reason} ->
         {:error, reason, state}
       {:selected, columns, rows} ->
-
         {:ok, %Result{columns: Enum.map(columns, &(to_string(&1))), rows: rows, num_rows: Enum.count(rows)}, state}
       {:updated, num_rows} ->
-        if num_rows == :undefined do
-          {:ok, %Result{num_rows: 1}, state}
-        else
-          {:ok, %Result{num_rows: num_rows}, state}
-        end
+        {:ok, %Result{num_rows: num_rows}, state}
     end
   end
 
@@ -271,8 +262,8 @@ defmodule Oracleex.Protocol do
 
   @doc false
   @spec handle_status(opts :: Keyword.t(), state :: any()) ::
-    {status(), new_state :: any()} |
-    {:disconnect, Exception.t(), new_state :: any()}
+  {status(), new_state :: any()} |
+  {:disconnect, Exception.t(), new_state :: any()}
   def handle_status(_opts, state) do
     status = status_state(state)
     {status, state}
