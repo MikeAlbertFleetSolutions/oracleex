@@ -1,10 +1,8 @@
 defmodule Oracleex.Protocol do
   @moduledoc """
   Implementation of `DBConnection` behaviour for `Oracleex.ODBC`.
-
   Handles translation of concepts to what ODBC expects and holds
   state for a connection.
-
   This module is not called directly, but rather through
   other `Oracleex` modules or `DBConnection` functions.
   """
@@ -18,9 +16,7 @@ defmodule Oracleex.Protocol do
 
   @typedoc """
   Process state.
-
   Includes:
-
   * `:pid`: the pid of the ODBC process
   * `:oracle`: the transaction state. Can be `:idle` (not in a transaction),
       `:transaction` (in a transaction) or `:auto_commit` (connection in
@@ -35,6 +31,7 @@ defmodule Oracleex.Protocol do
   @type params :: [{:odbc.odbc_data_type(), :odbc.value()}]
   @type result :: Result.t
   @type cursor :: any
+  @type status :: :idle | :transaction | :error
 
   @doc false
   @spec connect(opts :: Keyword.t) :: {:ok, state}
@@ -155,18 +152,30 @@ defmodule Oracleex.Protocol do
        %Oracleex.Error{message: "savepoint not allowed in autocommit mode"},
        state}
     else
-      handle_execute(
+      execute_result = handle_execute(
         %Oracleex.Query{name: "", statement: "SAVEPOINT Oracleex_savepoint"},
         [], opts, state)
+
+      case execute_result do
+        {:ok, _query, result, state} -> {:ok, result, state}
+        {:error, _exception, state} -> {:error, state}
+        {:disconnect, exception, state} -> {:disconnect, exception, state}
+      end
     end
   end
   defp handle_savepoint(:commit, _opts, state) do
     {:ok, %Result{}, state}
   end
   defp handle_savepoint(:rollback, opts, state) do
-    handle_execute(
+    execute_result = handle_execute(
       %Oracleex.Query{name: "", statement: "ROLLBACK TO Oracleex_savepoint"},
       [], opts, state)
+
+    case execute_result do
+      {:ok, _query, result, state} -> {:ok, result, state}
+      {:error, _exception, state} -> {:error, state}
+      {:disconnect, exception, state} -> {:disconnect, exception, state}
+    end
   end
 
   @doc false
@@ -179,24 +188,33 @@ defmodule Oracleex.Protocol do
 
   @doc false
   @spec handle_execute(query, params, opts :: Keyword.t, state) ::
-    {:ok, result, state} |
+    {:ok, query, result, state} |
     {:error | :disconnect, Exception.t, state}
   def handle_execute(query, params, opts, state) do
-    {status, message, new_state} = do_query(query, params, opts, state)
-
-    case new_state.oracle do
-      :idle ->
-        with {:ok, _, post_commit_state} <- handle_commit(opts, new_state)
-        do
-          {status, message, post_commit_state}
-        end
-      :transaction -> {status, message, new_state}
-      :auto_commit ->
-        with {:ok, post_connect_state} <- switch_auto_commit(:off, new_state)
-        do
-          {status, message, post_connect_state}
-        end
+    with {:ok, message, new_state} <- do_query(query, params, opts, state)
+    do
+      case new_state.oracle do
+        :idle ->
+          with {:ok, _, post_commit_state} <- handle_commit(opts, new_state)
+          do
+            {:ok, query, message, post_commit_state}
+          end
+        :transaction ->
+          {:ok, query, message, new_state}
+        :auto_commit ->
+          with {:ok, post_connect_state} <- switch_auto_commit(:off, new_state)
+          do
+            {:ok, query, message, post_connect_state}
+          end
+      end
+    else
+      {status, message, new_state} ->
+        handle_execute_error_disconnect(new_state, status, message)
     end
+  end
+
+  defp handle_execute_error_disconnect(state, status, message) do
+    {status, message, state}
   end
 
   defp do_query(query, params, opts, state) do
@@ -241,4 +259,28 @@ defmodule Oracleex.Protocol do
       other -> other
     end
   end
+
+  @doc false
+  @spec handle_status(opts :: Keyword.t(), state :: any()) ::
+  {status(), new_state :: any()} |
+  {:disconnect, Exception.t(), new_state :: any()}
+  def handle_status(_opts, state) do
+    status = status_state(state)
+    {status, state}
+  end
+
+  defp status_state(state) do
+    case state.oracle do
+      :idle -> :idle
+      :transaction -> :transaction
+      :auto_commit -> :error
+      :error -> :error
+    end
+  end
+
+  # TODO: mark not implemented
+  # handle_deallocate
+  # handle_declare
+  # handle_fetch
+
 end

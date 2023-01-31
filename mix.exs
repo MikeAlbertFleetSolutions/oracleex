@@ -19,7 +19,7 @@ defmodule Oracleex.Mixfile do
 
   defp deps do
     [
-      {:db_connection, "~> 1.1"},
+      {:db_connection, "~> 2.0.0"},
       {:decimal, "~> 1.0"}
     ]
   end

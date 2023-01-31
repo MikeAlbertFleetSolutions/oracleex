@@ -11,6 +11,8 @@ Here are a couple articles were they described the implementation:
 * [SQL Server in Elixir, Part 1: Connecting](http://tech.findmypast.com/sql-server-in-elixir-connection)
 * [SQL Server in Elixir, Part 2: Process Management](http://tech.findmypast.com/sql-server-in-elixir-gen-server)
 
+AutoCommit (Auto_Commit) is 'on' by default in Oracle; but defaulted 'off' in code. We don't use this library with AutoCommit 'on' and as such the code around AutoCommit is not fully baked and tested. 
+
 ## Installation
 
 Oracleex requires the [Erlang ODBC application](http://erlang.org/doc/man/odbc.html) to be installed.
@@ -27,13 +29,34 @@ variables to be set.  See the docker-compose file for details
 ### To start the database:
 
 ```bash
-docker-compose start db
+docker-compose up db
 ```
 
 ### To open a shell at the app root:
 
 ```bash
 docker-compose run oracleex
+```
+
+### To run the unit tests:
+
+```bash
+mix deps.get
+mix test
+```
+
+## Testing against 19c
+
+### To start the database:
+
+```bash
+docker-compose -f docker-compose.19c.yml up db
+```
+
+### To open a shell at the app root:
+
+```bash
+docker-compose -f docker-compose.19c.yml run --rm oracleex
 ```
 
 ### To run the unit tests:

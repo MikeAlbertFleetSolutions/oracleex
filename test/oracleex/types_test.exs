@@ -110,22 +110,28 @@ defmodule Oracleex.TypesTest do
     assert Decimal.equal?(number, value)
   end
 
-  test "timestamp as tuple", %{pid: pid} do
+  test "timestamp as naive_date_time", %{pid: pid} do
+    naive_date_time = ~N[2017-01-01 12:10:00]
     assert {_query, %Result{columns: ["TEST"],
-      rows: [[{{2017, 1, 1}, {12, 10, 0}}]]}} = act(pid, "timestamp",
-      [{{2017, 1, 1}, {12, 10, 0, 0}}])
+      rows: [[naive_date_time]]}} = act(pid, "timestamp",
+      [naive_date_time])
+  end
+  # ERLANG ODBC with the Oracle ODBC driver seems to be always returning the Date Time not just the Date; so this is what we have to expect
+  test "date as date", %{pid: pid} do
+    date = ~D[2017-01-01]
+    assert {_query, %Result{columns: ["TEST"], rows: [[~N[2017-01-01 00:00:00]]]}} =
+      act(pid, "date", [date])
   end
 
-  # ERLANG ODBC with the Oracle ODBC driver seems to be always returning the Date Time tuple not just the Date tuple; so this is what we have to expect
-  test "date as tuple", %{pid: pid} do
-    assert {_query, %Result{columns: ["TEST"], rows: [[{{2017, 1, 1}, {0, 0, 0}}]]}} =
-      act(pid, "date", [{2017, 1, 1}])
-  end
+  # # ERLANG ODBC with the Oracle ODBC driver seems to be always returning the Date Time tuple not just the Date tuple; so this is what we have to expect
+  # test "date as naive_date_time", %{pid: pid} do
+  #   assert {_query, %Result{columns: ["TEST"], rows: [[{{2017, 1, 1}, {0, 0, 0}}]]}} =
+  #     act(pid, "date", [])
+  # end
 
   test "null", %{pid: pid} do
     type = "char(13)"
 
-    Oracleex.query(pid, "drop table #{table_name(type)}", [])
     Oracleex.query!(pid,
       "create table #{table_name(type)} (test #{type}, num number)", [])
     Oracleex.query!(pid,
@@ -139,22 +145,26 @@ defmodule Oracleex.TypesTest do
   end
 
   test "invalid input type", %{pid: pid} do
+    type = "char(10)"
     assert_raise Oracleex.Error, ~r/unrecognised type/, fn ->
-      act(pid, "char(10)", [{"Nathan"}])
+      act(pid, type, [{"Nathan"}])
     end
+    Oracleex.query(pid, "drop table #{table_name(type)}", [])
   end
 
   test "invalid input binary", %{pid: pid} do
+    type = "char(12)"
     assert_raise Oracleex.Error, ~r/failed to convert/, fn ->
-      act(pid, "char(12)", [<<110, 0, 200>>])
+      act(pid, type, [<<110, 0, 200>>])
     end
+    Oracleex.query(pid, "drop table #{table_name(type)}", [])
   end
 
   defp table_name(type) do
     ~s(web_ca."#{Base.url_encode64 type}")
   end
   defp act(pid, type, params, opts \\ []) do
-    Oracleex.query(pid, "drop table #{table_name(type)}", [])
+    #Oracleex.query(pid, "drop table #{table_name(type)}", [])
 
     Oracleex.query!(pid,
       "create table #{table_name(type)} (test #{type})", [], opts)
