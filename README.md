@@ -44,24 +44,3 @@ docker-compose run oracleex
 mix deps.get
 mix test
 ```
-
-## Testing against 19c
-
-### To start the database:
-
-```bash
-docker-compose -f docker-compose.19c.yml up db
-```
-
-### To open a shell at the app root:
-
-```bash
-docker-compose -f docker-compose.19c.yml run --rm oracleex
-```
-
-### To run the unit tests:
-
-```bash
-mix deps.get
-mix test
-```
