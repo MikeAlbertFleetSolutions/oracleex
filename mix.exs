@@ -6,7 +6,7 @@ defmodule Oracleex.Mixfile do
       app: :oracleex,
       version: "0.2.0",
       description: "Adapter to Oracle. Using DBConnection and ODBC.",
-      elixir: "~> 1.4",
+      elixir: "~> 1.13",
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       deps: deps()
