@@ -113,7 +113,7 @@ defmodule Oracleex.TypesTest do
   test "timestamp as naive_date_time", %{pid: pid} do
     naive_date_time = ~N[2017-01-01 12:10:00]
     assert {_query, %Result{columns: ["TEST"],
-      rows: [[naive_date_time]]}} = act(pid, "timestamp",
+      rows: [[^naive_date_time]]}} = act(pid, "timestamp",
       [naive_date_time])
   end
   # ERLANG ODBC with the Oracle ODBC driver seems to be always returning the Date Time not just the Date; so this is what we have to expect
