@@ -1,16 +1,24 @@
-version: '2'
+version: '3'
 services:
+  # db:
+  #   image: mafs/oracledb:web_ca-db
+  #   ports:
+  #     - 1521:1521
+
   db:
-    image: mafs/oracledb:web_ca-db
+    image: mafs/oracledb:web_ca-19.3.0-se2
     ports:
-      - 1521:1521
+      - 1531:1521
 
   oracleex:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mafs/oracleex:oralce-19c
     volumes:
       - ${WORKSPACE}/oracleex/:/app
     environment:
-      - ORACLE_DSN=OracleODBC-12c
+      - ORACLE_DSN=OracleODBC-19
       - ORACLE_SERVICE=db
       - ORACLE_USR=web_ca
       - ORACLE_PWD=bitsandbobs

@@ -4,9 +4,9 @@ defmodule Oracleex.Mixfile do
   def project do
     [
       app: :oracleex,
-      version: "0.1.0",
+      version: "0.2.0",
       description: "Adapter to Oracle. Using DBConnection and ODBC.",
-      elixir: "~> 1.4",
+      elixir: "~> 1.13",
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
       deps: deps()
@@ -19,8 +19,8 @@ defmodule Oracleex.Mixfile do
 
   defp deps do
     [
-      {:db_connection, "~> 2.0.0"},
-      {:decimal, "~> 1.0"}
+      {:db_connection, "~> 2.4.0"},
+      {:decimal, "~> 1.8.1"}
     ]
   end
 end
